@@ -1,0 +1,370 @@
+﻿
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid px-4 py-4">
+
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0"><i class="fas fa-tachometer-alt me-2 text-primary"></i> Dashboard</h2>
+            <small class="text-muted">Resumen de actividad y ventas</small>
+        </div>
+    </div>
+
+    <!-- Tarjetas métricas (estilo SB Admin 2 adaptadas) -->
+    <div class="row mb-3">
+        <!-- Total Ingresos -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Ingresos totales
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalingresos">0</div>
+
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-coins fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Total Ingresos este mes -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Ingresos este mes
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalingresosestemes">0</div>
+
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--Ingresos de hoy-->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Ingresos Hoy
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalingresoshoy">0</div>
+
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-cash-register fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Ventas -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Ventas
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalventa">0</div>
+
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Pedidos Pendientes -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Pedidos Pendientes
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="pedidospendientes">0</div>
+
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Peidos Hoy -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-secondary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
+                                Pedidos Hoy
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="pedidoshoy">0</div>
+
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-truck fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Productos -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Productos
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalproducto">0</div>
+
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-boxes fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Clientes -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Clientes
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalcliente">0</div>
+
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+
+        
+        
+        
+        
+        <!-- GRAFICOS -->
+        <div class="row mt-4">
+
+            <!-- Area Chart ingresos mensuales -->
+            <div class="col-xl-8 col-lg-7">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-coins"></i>  Ingresos mensuales </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-area">
+                            <canvas id="myAreaChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <!-- Area Chart Ingresos HOY -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-cash-register "></i>  Ingresos diarios</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-area">
+                            <canvas id="myAreaChartToday"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bar Chart -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-truck"></i> Pedidos</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-bar">
+                            <canvas id="myBarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Donut Chart -->
+            <div class="col-xl-4 col-lg-5">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Resumen</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-pie pt-4">
+                            <canvas id="myPieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+
+    </div>
+</div>
+<script>
+    let ingresosChart, ingresosHoyChart, pedidosChart, resumenChart;
+
+    document.addEventListener("DOMContentLoaded", () => {
+        cargarDashboard();
+    });
+
+    async function cargarDashboard() {
+
+        const response = await fetch('/Home/VistaDashBoard');
+        const result = await response.json();
+        const d = result.data;
+
+        document.getElementById('totalcliente').innerText = d.TotalCliente;
+        document.getElementById('totalventa').innerText = d.TotalVenta;
+        document.getElementById('totalproducto').innerText = d.TotalProducto;
+        document.getElementById('totalingresoshoy').innerText = "$" + d.TotalIngresosHoy;
+        document.getElementById('pedidospendientes').innerText = d.PedidosPendientes;
+        document.getElementById('pedidoshoy').innerText = d.PedidosHoy;
+        document.getElementById('totalingresos').innerText = "$" + d.TotalIngresos;
+        document.getElementById('totalingresosestemes').innerText = "$" + d.TotalIngresosMesActual;
+
+        renderCharts(d);
+    }
+
+            function renderCharts(d) {
+
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        };
+
+        /* ===================== INGRESOS DIARIOS - ÚLTIMOS 7 DÍAS ===================== */
+        const labelsDias = d.IngresosDiarios.map(x =>
+            new Date(x.Fecha).toLocaleDateString('es-SV', { day: '2-digit', month: 'short' })
+        );
+
+        const dataDias = d.IngresosDiarios.map(x => x.Total);
+
+            ingresosHoyChart = new Chart(document.getElementById("myAreaChartToday"), {
+        type: 'line',
+        data: {
+            labels: labelsDias,
+            datasets: [{
+                label: "Ingresos de este dia",
+                data: dataDias,
+                fill: false,
+                borderColor: "rgba(28, 200, 138, 1)",
+                backgroundColor: "rgba(28, 200, 138, 1)",
+                tension: 0.3,
+                borderWidth: 3,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: commonOptions
+    });
+
+        /* ===================== INGRESOS MENSUALES - ÚLTIMOS 12 MESES ===================== */
+        const labelsMeses = d.IngresosMensuales.map(x => x.Mes);
+        const dataMeses = d.IngresosMensuales.map(x => x.Total);
+
+            ingresosChart = new Chart(document.getElementById("myAreaChart"), {
+        type: 'line',
+        data: {
+            labels: labelsMeses,
+            datasets: [{
+                label: "Ingresos de este mes",
+                data: dataMeses,
+                fill: false,
+                borderColor: "rgba(78, 115, 223, 1)",
+                backgroundColor: "rgba(78, 115, 223, 1)",
+                tension: 0.3,
+                borderWidth: 3,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: commonOptions
+    });
+
+
+        /* ===================== PEDIDOS ===================== */
+        pedidosChart = new Chart(document.getElementById("myBarChart"), {
+            type: 'bar',
+            data: {
+                labels: ["Pendientes", "Hoy"],
+                datasets: [{
+                    data: [d.PedidosPendientes, d.PedidosHoy],
+                    backgroundColor: [
+                        "rgba(231, 74, 59, 1)",
+                        "rgba(28, 200, 138, 1)"
+                    ],
+                    borderWidth: 0,
+                    barPercentage: 0.35,
+                    categoryPercentage: 0.5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        /* ===================== RESUMEN ===================== */
+        resumenChart = new Chart(document.getElementById("myPieChart"), {
+            type: 'doughnut',
+            data: {
+                labels: ["Pendientes", "Hoy", "Ventas"],
+                datasets: [{
+                    data: [d.PedidosPendientes, d.PedidosHoy, d.TotalVenta],
+                    borderWidth: 1
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+        
+</script>
+
+
+
+   
+
+

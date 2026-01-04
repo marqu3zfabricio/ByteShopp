@@ -1,0 +1,238 @@
+﻿@{
+    ViewData["Title"] = "Pago";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@model List<CapaEntidad.Carrito>
+
+<div class="container my-4">
+
+    <h4 class="fw-bold mb-3">
+        <i class="fas fa-credit-card me-2 text-dark"></i> Confirmar Pedido
+    </h4>
+
+    <div class="row">
+        <div class="col-12">
+
+            <!-- Datos de entrega -->
+            <div class="card border-0 overflow-hidden mb-3">
+                <div class="card-header bg-dark text-white rounded-3 px-3 py-2 border-0">
+                    <i class="fas fa-user me-2"></i> Datos de entrega
+                </div>
+                <div class="card-body pt-3 px-3 pb-3">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Departamento</label>
+                            <select id="departamento" class="form-select">
+                                <option value="">-- Seleccionar Departamento --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Municipio</label>
+                            <select id="municipio" class="form-select" disabled>
+                                <option value="">-- Seleccionar Municipio --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Distrito</label>
+                            <select id="distrito" class="form-select" disabled>
+                                <option value="">-- Seleccionar Distrito --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" value="" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Dirección completa</label>
+                            <textarea class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumen del pedido -->
+            <div class="card border-0 overflow-hidden">
+                <div class="card-header bg-dark text-white rounded-3 px-3 py-2 border-0">
+                    <i class="fas fa-list-alt me-2"></i> Resumen del pedido
+                </div>
+                <div class="card-body pt-3 px-3 pb-3">
+
+                    <!-- Encabezados tipo tabla -->
+                    <div class="row g-2 fw-bold text-center mb-2">
+                        <div class="col-2">Imagen</div>
+                        <div class="col-4 text-start">Producto</div>
+                        <div class="col-2">Precio</div>
+                        <div class="col-2">Cantidad</div>
+                        <div class="col-2">Total</div>
+                    </div>
+
+                    <!-- Productos -->
+                    @foreach (var item in Model)
+                    {
+                        <div class="row g-2 align-items-center text-center mb-2">
+                            <div class="col-2">
+                                <img src="@item.oProducto.RutaImagen"
+                                     class="img-fluid rounded"
+                                     style="max-height:80px; object-fit:contain;" />
+                            </div>
+                            <div class="col-4 text-start d-flex align-items-center">
+                                @item.oProducto.Nombre
+                            </div>
+                            <div class="col-2 d-flex align-items-center justify-content-center">
+                                $@item.oProducto.Precio
+                            </div>
+                            <div class="col-2 d-flex align-items-center justify-content-center">
+                                @item.Cantidad
+                            </div>
+                            <div class="col-2 d-flex align-items-center justify-content-center">
+                                $@(item.oProducto.Precio* item.Cantidad)
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Total global -->
+                    <div class="d-flex justify-content-end fs-5 fw-bold mt-3">
+                        <span>Total a pagar: </span>
+                        <span class="ms-2">$@Model.Sum(x => x.oProducto.Precio * x.Cantidad)</span>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-success">
+                            <i class="fas fa-check-circle me-2"></i> Confirmar pedido
+                        </button>
+
+                        <a href="@Url.Action("Carrito", "ByteShopTienda")"
+                           class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-arrow-left me-2"></i> Volver al carrito
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Cargar departamentos al iniciar
+            $.getJSON('@Url.Action("ListarDepartamentos")', function (response) {
+                $.each(response.data, function (i, departamento) {
+                    $('#departamento').append(`<option value="${departamento.IdDepartamento}">${departamento.Nombre}</option>`);
+                });
+            });
+
+            // Cuando se selecciona un departamento
+            $('#departamento').on('change', function () {
+                var deptoId = $(this).val();
+                $('#municipio').prop('disabled', !deptoId).html('<option value="">-- Seleccionar Municipio --</option>');
+                $('#distrito').prop('disabled', true).html('<option value="">-- Seleccionar Distrito --</option>');
+
+                if (deptoId) {
+                    $.getJSON('@Url.Action("ListarMunicipios")', function (response) {
+                        var municipios = response.data.filter(m => m.oDepartamento?.IdDepartamento == deptoId);
+                        $.each(municipios, function (i, municipio) {
+                            $('#municipio').append(`<option value="${municipio.IdMunicipio}">${municipio.Nombre}</option>`);
+                        });
+                    });
+                }
+            });
+
+            // Cuando se selecciona un municipio
+            $('#municipio').on('change', function () {
+                var municipioId = $(this).val();
+                $('#distrito').prop('disabled', !municipioId).html('<option value="">-- Seleccionar Distrito --</option>');
+
+                if (municipioId) {
+                    $.getJSON('@Url.Action("ListarDistritos")', function (response) {
+                        var distritos = response.data.filter(d => d.oMunicipio?.IdMunicipio == municipioId);
+                        $.each(distritos, function (i, distrito) {
+                            $('#distrito').append(`<option value="${distrito.IdDistrito}">${distrito.Nombre}</option>`);
+                        });
+                    });
+                }
+            });
+
+            // Confirmar pedido
+            $('.btn-success').click(function () {
+                var totalProducto = @Model.Sum(x => x.Cantidad); // Total de productos
+                var montoTotal = @Model.Sum(x => x.Cantidad * x.oProducto.Precio); // Total monto
+                var idDepartamento = $('#departamento').val();
+                var idMunicipio = $('#municipio').val();
+                var idDistrito = $('#distrito').val();
+                var telefono = $('input[type="text"]').val();
+                var direccion = $('textarea').val();
+                var idTransaccion = 'TX-' + new Date().getTime(); // Genera un ID de transacción único
+
+                if (!idDepartamento) {
+                    Swal.fire('Error', 'Debe seleccionar un departamento', 'warning');
+                    return;
+                }
+                if (!idMunicipio) {
+                    Swal.fire('Error', 'Debe seleccionar un municipio', 'warning');
+                    return;
+                }
+                if (!idDistrito) {
+                    Swal.fire('Error', 'Debe seleccionar un distrito', 'warning');
+                    return;
+                }
+                
+                
+                if (!telefono ) {
+                    Swal.fire('Error', 'Debe agregar un telefono de contacto', 'warning');
+                    return;
+                }
+                        var regexTelefono = /^\d+$/;
+        if (!regexTelefono.test(telefono)) {
+            Swal.fire('Error', 'El teléfono solo puede contener números', 'warning');
+            return;
+        }
+                if (!direccion) {
+                    Swal.fire('Error', 'Debe agregar una direccion', 'warning');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("RegistrarVenta")',
+                    type: 'POST',
+                    data: {
+                        totalProducto: totalProducto,
+                        montoTotal: montoTotal,
+                        idDistrito: idDistrito,
+                        telefono: telefono,
+                        direccion: direccion,
+                        idTransaccion: idTransaccion
+                    },
+                    success: function (response) {
+                                if (response.resultado) {
+
+            Swal.fire({
+                title: '¿Confirmar pago en efectivo?',
+                text: 'Serás redirigido a la página de pago. Esta acción no se puede deshacer.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, continuar',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+                    window.location.href = '@Url.Action("PagoEfectivo", "Pagos")' + '?pagoRealizado=true&idTransaccion=' + idTransaccion;
+                }
+
+            });
+        }
+         else {
+                            Swal.fire('Error', response.mensaje, 'error');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        Swal.fire('Error', 'Ocurrió un error al procesar la venta', 'error');
+                    }
+                });
+            });
+        });
+    </script>
+}

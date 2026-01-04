@@ -1,0 +1,399 @@
+﻿@{
+    ViewData["Title"] = "Gestión de Productos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid px-4 py-4">
+
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0"><i class="fas fa-boxes me-2 text-primary"></i> Productos</h2>
+            <small class="text-muted">Gestion de productos</small>
+        </div>
+    </div>
+
+    <div class="card shadow rounded-3 mt-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-boxes me-2"></i> Listado de Productos</span>
+            <button class="btn btn-light btn-sm" id="btnNuevoProducto">
+                <i class="fas fa-plus me-1"></i> Crear nuevo
+            </button>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="tablaProductos" class="table table-hover align-middle" style="width:100%;">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Marca</th>
+                            <th>Categoría</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>Activo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Producto -->
+<div class="modal fade" id="modalProducto" tabindex="-1" aria-labelledby="modalProductoLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content rounded-3 shadow">
+            
+            <!-- ENCABEZADO -->
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalProductoLabel">Nuevo Producto</h5>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal" aria-label="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- CUERPO -->
+            <div class="modal-body">
+                <input type="hidden" id="idProducto" value="0" />
+
+                <form id="formProducto">
+                    <div class="row g-3">
+
+                        <!-- COLUMNA 1: Imagen -->
+                        <div class="col-md-3 text-center">
+                            <img id="img_producto" 
+                                 src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" 
+                                 class="border rounded img-fluid mb-2 shadow-sm" 
+                                 style="height:197px; width:200px;" />
+                            <input type="file" 
+                                   class="form-control form-control-sm" 
+                                   id="fileProducto" 
+                                   accept="image/png, image/jpg, image/jpeg, image/webp, image/avif" 
+                                   onchange="mostrarImagen(this)" />
+                        </div>
+
+                        <!-- COLUMNA 2: Nombre y descripción -->
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Nombre</label>
+                                <input type="text" class="form-control form-control-sm" id="txtNombre" autocomplete="off" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Descripción</label>
+                                <textarea class="form-control form-control-sm" 
+                                          id="txtDescripcion" 
+                                          style="height:125px; resize:none;"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- COLUMNA 3: Marca, Categoría y Precio -->
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Marca</label>
+                                <select class="form-select form-select-sm w-100" id="cbomarca"></select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Categoría</label>
+                                <select class="form-select form-select-sm w-100" id="cbocategoria"></select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Precio</label>
+                                <input type="number" class="form-control form-control-sm" id="txtPrecio" min="0" step="0.01" />
+                            </div>
+                        </div>
+
+                        <!-- COLUMNA 4: Stock y Activo -->
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Stock</label>
+                                <input type="number" class="form-control form-control-sm" id="txtStock" min="0" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Activo</label>
+                                <select class="form-select form-select-sm" id="cboActivo">
+                                    <option value="1">Sí</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    </div>
+                </form>
+
+                <!-- MENSAJE DE ERROR -->
+                <div class="mt-2">
+                    <div id="mensajeError" class="alert alert-danger d-none"></div>
+                </div>
+            </div>
+
+            <!-- PIE -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" id="btnGuardarProducto">
+                    <i class="fas fa-save me-1"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+<script>
+    let tablaProductos;
+    let filaSeleccionada;
+
+    $(document).ready(function () {
+        // Inicializar DataTable
+        tablaProductos = $('#tablaProductos').DataTable({
+            responsive: true,
+                ordering: true,
+
+            ajax: {
+                url: '@Url.Action("ListarProductos", "Gestion")',
+                type: 'GET',
+                dataType: 'json'
+            },
+            language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
+            columns: [
+                { data: 'Nombre' },
+                { data: 'Descripcion' },
+                { data: 'oMarca.Descripcion' },
+                { data: 'oCategoria.Descripcion' },
+                        {
+            data: 'Precio',
+            render: function (valor) {
+                return `$${parseFloat(valor).toFixed(2)}`;
+            }
+        },
+
+                { data: 'Stock' },
+                {
+                    data: 'Activo',
+                    render: function (valor) {
+                                return valor ? '<span class="badge bg-success text-white">Sí</span>' : '<span class="badge bg-danger text-white">No</span>';
+                    }
+                },
+                {
+                    data: null,
+                    orderable: false,
+                    render: function () {
+                        return `<button class="btn btn-sm btn-primary btn-editar"><i class="fas fa-pen"></i></button>
+                                <button class="btn btn-sm btn-danger btn-eliminar ms-1"><i class="fas fa-trash"></i></button>`;
+                    }
+                }
+            ]
+        });
+
+        // Cargar combos
+        cargarCombos();
+    });
+
+    function cargarCombos() {
+                $.get('@Url.Action("ListarMarcas", "Gestion")', function (data) {
+            $("#cbomarca")
+                .empty()
+                .append('<option value="0" disabled selected>Seleccionar</option>');
+
+            $.each(data.data, function (i, item) {
+                if (item.Activo === true) { 
+                    $("#cbomarca").append(
+                        `<option value="${item.IdMarca}">${item.Descripcion}</option>`
+                    );
+                }
+            });
+        });
+
+
+                $.get('@Url.Action("ListarCategorias", "Gestion")', function (data) {
+            $("#cbocategoria")
+                .empty()
+                .append('<option value="0" disabled selected>Seleccionar</option>');
+
+            $.each(data.data, function (i, item) {
+                if (item.Activo === true) {
+                    $("#cbocategoria").append(
+                        `<option value="${item.IdCategoria}">${item.Descripcion}</option>`
+                    );
+                }
+            });
+        });
+
+    }
+
+    $('#btnNuevoProducto').click(function () {
+        limpiarModal();
+        $('#modalProductoLabel').text('Nuevo Producto');
+        $('#modalProducto').modal('show');
+    });
+
+    function limpiarModal() {
+        filaSeleccionada = null;
+        $('#idProducto').val(0);
+        $('#txtNombre,#txtDescripcion,#txtPrecio,#txtStock').val('');
+        $('#cbomarca,#cbocategoria').val($("#cbomarca option:first").val());
+        $('#cboActivo').val(1);
+        $('#fileProducto').val('');
+        $('#img_producto').attr('src', 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==');
+        $('#mensajeError').addClass('d-none').text('');
+    }
+
+    function mostrarImagen(input) {
+        if (input.files && input.files[0]) {
+            let reader = new FileReader();
+            reader.onload = e => $("#img_producto").attr("src", e.target.result);
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+            $('#btnGuardarProducto').click(function () {
+            const archivoImagen = $('#fileProducto')[0].files[0];
+
+            // Leer valores
+            const nombre = $('#txtNombre').val().trim();
+            const descripcion = $('#txtDescripcion').val().trim();
+            const idMarca = parseInt($('#cbomarca').val()) || 0;
+            const idCategoria = parseInt($('#cbocategoria').val()) || 0;
+            const precio = parseFloat($('#txtPrecio').val()) || 0;
+            const stock = parseInt($('#txtStock').val()) || 0;
+            const activo = $('#cboActivo').val() == 1;
+
+            // Validaciones básicas en cliente
+            let errores = [];
+            if (!nombre) errores.push("El nombre es obligatorio.");
+            if (!descripcion) errores.push("La descripción es obligatoria.");
+            if (idMarca <= 0) errores.push("Debe seleccionar una marca válida.");
+            if (idCategoria <= 0) errores.push("Debe seleccionar una categoría válida.");
+            if (precio <= 0) errores.push("El precio debe ser mayor a 0.");
+            if (stock < 0) errores.push("El stock no puede ser negativo.");
+
+            if (errores.length > 0) {
+                $('#mensajeError').removeClass('d-none').html(errores.join('<br>'));
+                return; // no continuar
+            }
+
+            // Construcción segura del objeto
+            const producto = {
+                IdProducto: parseInt($('#idProducto').val()) || 0,
+                Nombre: nombre,
+                Descripcion: descripcion,
+                oMarca: { IdMarca: idMarca },
+                oCategoria: { IdCategoria: idCategoria },
+                Precio: precio,
+                Stock: stock,
+                Activo: activo
+            };
+
+            let formData = new FormData();
+            formData.append('objeto', JSON.stringify(producto));
+
+            // ✅ ahora validamos la imagen antes de enviarla
+            if (archivoImagen) {
+                const extensionesValidas = ['image/png', 'image/jpg', 'image/jpeg', 'image/webp', 'image/avif'];
+                if (!extensionesValidas.includes(archivoImagen.type)) {
+                    $('#mensajeError').removeClass('d-none').text('El archivo de imagen no es válido.');
+                    return;
+                }
+                formData.append('archivoImagen', archivoImagen);
+            }
+
+            $.ajax({
+                url: '@Url.Action("GuardarProducto", "Gestion")',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                beforeSend: () => $.LoadingOverlay("show"),
+                success: function (data) {
+                    $.LoadingOverlay("hide");
+                    if (data.exito) {
+                        tablaProductos.ajax.reload();
+                        $('#modalProducto').modal('hide');
+                            Swal.fire({
+                                    icon: 'success',
+                                    title: '',
+                                    html: data.mensaje,
+                                    iconColor: '#0d6efd',
+                                    confirmButtonColor: '#0d6efd'
+                                });;
+                    } else {
+                        $('#mensajeError').removeClass('d-none').text(data.mensaje);
+                    }
+                },
+                error: () => {
+                    $.LoadingOverlay("hide");
+                    Swal.fire('', 'Ocurrió un error al guardar', 'error');
+                }
+            });
+        });
+
+
+    // Editar producto
+    $('#tablaProductos tbody').on('click', '.btn-editar', function () {
+        filaSeleccionada = tablaProductos.row($(this).parents('tr')).data();
+        $('#modalProductoLabel').text('Editar Producto');
+        $('#idProducto').val(filaSeleccionada.IdProducto);
+        $('#txtNombre').val(filaSeleccionada.Nombre);
+        $('#txtDescripcion').val(filaSeleccionada.Descripcion);
+        $('#cbomarca').val(filaSeleccionada.oMarca.IdMarca);
+        $('#cbocategoria').val(filaSeleccionada.oCategoria.IdCategoria);
+        $('#txtPrecio').val(filaSeleccionada.Precio);
+        $('#txtStock').val(filaSeleccionada.Stock);
+        $('#cboActivo').val(filaSeleccionada.Activo ? 1 : 0);
+        if (filaSeleccionada.RutaImagen) $('#img_producto').attr('src', filaSeleccionada.RutaImagen);
+        $('#modalProducto').modal('show');
+    });
+
+    // Eliminar producto
+    $('#tablaProductos tbody').on('click', '.btn-eliminar', function () {
+        const data = tablaProductos.row($(this).parents('tr')).data();
+        Swal.fire({
+            title: '¿Eliminar producto?',
+            text: `Se eliminará el producto "${data.Nombre}"`,
+            icon: 'warning',
+                iconColor: '#0d6efd',
+                    showCancelButton: true,
+                    confirmButtonText: 'Eliminar',
+                    confirmButtonColor: '#0d6efd',
+                    cancelButtonText: 'Cancelar',
+                    reverseButtons: true
+        }).then(result => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '@Url.Action("EliminarProducto", "Gestion")?id=' + data.IdProducto,
+                    type: 'DELETE',
+                    success: function(resp){
+                            if(resp.exito){ tablaProductos.ajax.reload(); Swal.fire({
+                                    icon: 'success',
+                                    title: '',
+                                    html: resp.mensaje,
+                                    iconColor: '#0d6efd',
+                                    confirmButtonColor: '#0d6efd'
+                                }); }
+                            else Swal.fire({
+                                    icon: 'error',
+                                    title: '',
+                                    html: resp.mensaje,
+                                    iconColor: '#0d6efd',
+                                    confirmButtonColor: '#0d6efd'
+                                });
+                    },
+                    error: () => Swal.fire('', 'No se pudo eliminar el producto', 'error')
+                });
+            }
+        });
+    });
+            // Limpiar modal completamente al cerrarlo
+        $('#modalProducto').on('hidden.bs.modal', function () {
+            limpiarModal();
+        });
+
+</script>
+}

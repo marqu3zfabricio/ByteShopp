@@ -1,0 +1,397 @@
+﻿@{
+    ViewData["Title"] = "ByteShop";
+    Layout = "_Layout";
+}
+
+<div class="container-xl mt-4">
+    <div class="mb-2">
+        <span class="text-muted fw-semibold small">Filtrar por:</span>
+    </div>
+    <div class="row g-3 align-items-center">
+
+
+        <!-- Categorías -->
+        <div class="col-auto">
+            <div class="dropdown">
+                <button class="btn btn-link text-dark text-decoration-none dropdown-toggle fs-6 px-1 focus-ring-0 shadow-none"
+                        type="button"
+                        id="dropdownCategorias"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                    Categorías
+                </button>
+                <ul class="dropdown-menu" id="listaCategorias">
+                    <li class="dropdown-item text-muted">Cargando...</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Marcas -->
+        <div class="col-auto">
+            <div class="dropdown">
+                <button class="btn btn-link text-dark text-decoration-none dropdown-toggle fs-6 px-1 focus-ring-0 shadow-none"
+                        type="button"
+                        id="dropdownMarcas"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                    Marcas
+                </button>
+                <ul class="dropdown-menu" id="listaMarcas">
+                    <li class="dropdown-item text-muted">Cargando...</li>
+                </ul>
+            </div>
+        </div>
+        <div id="filtrosActivos" class="mt-2 small text-muted"></div>
+        <hr class="text-secondary my-4">
+    </div>
+</div>
+
+
+<div class="container-xl mt-4">
+    <div class="row g-4" id="contenedorProductos">
+        <!-- Cards dinámicas -->
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            cargarCategorias();
+            cargarMarcas();
+            cargarProductos();
+            actualizarFiltrosActivos();
+
+        });
+        let categoriaSeleccionada = 0;
+        let marcaSeleccionada = 0;
+                function cargarCategorias() {
+            fetch('@Url.Action("ListarCategorias", "ByteShopTienda")')
+                .then(response => response.json())
+                .then(result => {
+                    const ul = document.getElementById("listaCategorias");
+                    ul.innerHTML = "";
+
+                    const liTodos = document.createElement("li");
+                    liTodos.innerHTML = `<a class="dropdown-item" href="#">Todas</a>`;
+                            liTodos.addEventListener("click", () => {
+                                categoriaSeleccionada = 0;
+                                document.getElementById("dropdownCategorias").textContent = "Categorías";
+
+                                cargarMarcas();       // vuelve a cargar todas las marcas
+                                cargarProductos();
+                                actualizarFiltrosActivos();
+
+                            });
+
+                    ul.appendChild(liTodos);
+
+                    result.data.forEach(cat => {
+                        const li = document.createElement("li");
+                        li.innerHTML = `<a class="dropdown-item" href="#">${cat.Descripcion}</a>`;
+
+                                li.addEventListener("click", () => {
+                                categoriaSeleccionada = cat.IdCategoria;
+                                marcaSeleccionada = 0;
+                                document.getElementById("dropdownCategorias").textContent = cat.Descripcion;
+                                document.getElementById("dropdownMarcas").textContent = "Marcas";
+                                cargarMarcasPorCategoria(categoriaSeleccionada);
+                                cargarProductos();
+                                actualizarFiltrosActivos();
+
+                            });
+                        ul.appendChild(li);
+                    });
+                });
+        }
+
+
+                function cargarMarcas() {
+            fetch('@Url.Action("ListarMarcas", "ByteShopTienda")')
+                .then(response => response.json())
+                .then(result => {
+                    const ul = document.getElementById("listaMarcas");
+                    ul.innerHTML = "";
+
+                    const liTodas = document.createElement("li");
+                    liTodas.innerHTML = `<a class="dropdown-item" href="#">Todas</a>`;
+                    liTodas.addEventListener("click", () => {
+                        marcaSeleccionada = 0;
+                        document.getElementById("dropdownMarcas").textContent = "Marcas";
+                        cargarProductos();
+                        actualizarFiltrosActivos();
+
+                    });
+                    ul.appendChild(liTodas);
+
+                    result.data.forEach(marca => {
+                        const li = document.createElement("li");
+                        li.innerHTML = `<a class="dropdown-item" href="#">${marca.Descripcion}</a>`;
+
+                        li.addEventListener("click", () => {
+                            marcaSeleccionada = marca.IdMarca;
+                            document.getElementById("dropdownMarcas").textContent = marca.Descripcion;
+                            cargarProductos();
+                            actualizarFiltrosActivos();
+
+                        });
+
+                        ul.appendChild(li);
+                    });
+                })
+                .catch(() => {
+                    document.getElementById("listaMarcas").innerHTML =
+                        '<li class="dropdown-item text-danger">Error al cargar</li>';
+                });
+        }
+
+
+           function cargarMarcasPorCategoria(idCategoria) {
+
+            fetch(`@Url.Action("ListarMarcas", "ByteShopTienda")?idCategoria=${idCategoria}`)
+                .then(response => response.json())
+                .then(result => {
+
+                    const ul = document.getElementById("listaMarcas");
+                    ul.innerHTML = "";
+
+                    if (result.data.length === 0) {
+                        ul.innerHTML = `<li class="dropdown-item text-muted">Sin marcas disponibles</li>`;
+                        return;
+                    }
+
+                    const liTodas = document.createElement("li");
+                    liTodas.innerHTML = `<a class="dropdown-item" href="#">Todas</a>`;
+                    liTodas.addEventListener("click", () => {
+                        marcaSeleccionada = 0;
+                        document.getElementById("dropdownMarcas").textContent = "Marcas";
+                        cargarProductos();
+                        actualizarFiltrosActivos();
+
+                    });
+                    ul.appendChild(liTodas);
+
+                    result.data.forEach(marca => {
+                        const li = document.createElement("li");
+                        li.innerHTML = `<a class="dropdown-item" href="#">${marca.Descripcion}</a>`;
+
+                        li.addEventListener("click", () => {
+                            marcaSeleccionada = marca.IdMarca;
+                            document.getElementById("dropdownMarcas").textContent = marca.Descripcion;
+                            cargarProductos();
+                            actualizarFiltrosActivos();
+
+                        });
+
+                        ul.appendChild(li);
+                    });
+
+                    document.getElementById("dropdownMarcas").textContent = "Marcas";
+                });
+        }
+
+
+        function cargarProductos() {
+
+
+                 let url = '@Url.Action("ListarProductos", "ByteShopTienda")';
+                 const params = [];
+            if (categoriaSeleccionada > 0)
+            params.push(`idCategoria=${categoriaSeleccionada}`);
+
+            if (marcaSeleccionada > 0)
+                params.push(`idMarca=${marcaSeleccionada}`);
+
+            if (params.length > 0)
+                url += `?${params.join("&")}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(result => {
+                    const contenedor = document.getElementById("contenedorProductos");
+                    contenedor.innerHTML = "";
+
+                    if (result.data.length === 0) {
+                        contenedor.innerHTML = `
+                            <div class="col-12 text-center text-muted mt-4">
+                                <i class="fas fa-box-open fs-1 mb-2"></i>
+                                <p class="mb-0">Actualmente no contamos con productos disponibles en esta categoría.</p>
+                            </div>`;
+                        return;
+                    }
+                    result.data.forEach(p => {
+                        const col = document.createElement("div");
+                        col.className = "col-12 col-sm-6 col-md-4 col-lg-3";
+
+                        col.innerHTML = `
+                            <div class="card h-100 shadow">
+
+                                <!-- Imagen uniforme -->
+                                <div class="ratio ratio-1x1">
+                                    <img src="${p.RutaImagen}"
+                                         class="card-img-top object-fit-cover"
+                                         alt="${p.Nombre}">
+                                </div>
+
+                                <div class="card-body d-flex flex-column">
+
+                                    <h6 class="card-title fw-semibold text-truncate">
+                                        ${p.Nombre}
+                                    </h6>
+
+                                    <p class="card-text small text-muted mb-2">
+                                        ${p.Descripcion.length > 70
+                                            ? p.Descripcion.substring(0, 70) + "..."
+                                            : p.Descripcion}
+                                    </p>
+
+                                    <span class="fw-bold fs-5 mb-3">
+                                        $${p.Precio}
+                                    </span>
+
+                                    <!-- Botones -->
+                                    <div class="mt-auto d-grid gap-2">
+
+
+                                                        <button class="btn btn-outline-dark btn-sm focus-ring-0 shadow-none"
+                                                        onclick="agregarCarrito(${p.IdProducto})">
+                                                    <i class="fas fa-cart-plus me-1"></i>
+                                                    Agregar al carrito
+                                                </button>
+
+
+                                                <a href="@Url.Action("ProductDetails", "ByteShopTienda")?id=${p.IdProducto}"
+                                                   class="btn btn-primary btn-sm focus-ring-0 shadow-none">
+                                                    <i class="fas fa-eye me-1"></i>
+                                                    Ver producto
+                                                </a>
+
+                                    </div>
+
+                                </div>
+                            </div>
+                        `;
+
+                        contenedor.appendChild(col);
+                    });
+                })
+                .catch(() => {
+                    document.getElementById("contenedorProductos").innerHTML =
+                        `<div class="col-12 text-danger">Error al cargar productos</div>`;
+                });
+        }
+                function agregarCarrito(idProducto) {
+            fetch('@Url.Action("OperacionCarrito", "ByteShopTienda")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    idProducto: idProducto,
+                    sumar: true,
+                    origen: 'index'
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+
+                // ✅ Producto agregado correctamente
+                if (result.resultado) {
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Producto agregado',
+                        text: 'El producto fue agregado al carrito correctamente',
+                        iconColor: '#0d6efd',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ir al carrito',
+                        cancelButtonText: 'Seguir comprando',
+                        confirmButtonColor: '#0d6efd',
+                        cancelButtonColor: '#6c757d'
+                    }).then((swalResult) => {
+                        if (swalResult.isConfirmed) {
+                            window.location.href = '@Url.Action("Carrito", "ByteShopTienda")';
+                        }
+                    });
+
+                    actualizarContadorCarrito();
+                    return;
+                }
+
+                // ⚠️ Producto ya existente en carrito
+                if (result.mensaje && result.mensaje.toLowerCase().includes("ya se encuentra")) {
+
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Producto ya agregado',
+                        text: result.mensaje,
+                        iconColor: '#0d6efd',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ver carrito',
+                        cancelButtonText: 'Seguir comprando',
+                        confirmButtonColor: '#0d6efd',
+                        cancelButtonColor: '#6c757d'
+                    }).then((swalResult) => {
+                        if (swalResult.isConfirmed) {
+                            window.location.href = '@Url.Action("Carrito", "ByteShopTienda")';
+                        }
+                    });
+
+                    return;
+                }
+
+                // ❌ Otro tipo de error
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No se pudo agregar el producto',
+                    text: result.mensaje,
+                    iconColor: '#0d6efd',
+                    confirmButtonColor: '#0d6efd'
+                });
+
+            })
+            .catch(() => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Ocurrió un error al agregar el producto al carrito',
+                    iconColor: '#0d6efd',
+                    confirmButtonColor: '#0d6efd'
+                });
+            });
+        }
+                       function actualizarFiltrosActivos() {
+            const contenedor = document.getElementById("filtrosActivos");
+
+            let texto = "Mostrando ";
+
+            // Sin filtros
+            if (categoriaSeleccionada === 0 && marcaSeleccionada === 0) {
+                texto += "todos los productos <span class='text-muted'>(sin filtros aplicados)</span>";
+            }
+            // Categoría + Marca
+            else if (categoriaSeleccionada > 0 && marcaSeleccionada > 0) {
+                texto += `
+                          <strong>${document.getElementById("dropdownCategorias").textContent}</strong>
+                          
+                          <strong>${document.getElementById("dropdownMarcas").textContent}</strong>`;
+            }
+            // Solo Categoría
+            else if (categoriaSeleccionada > 0) {
+                texto += `
+                          <strong>${document.getElementById("dropdownCategorias").textContent}</strong>`;
+            }
+            // Solo Marca
+            else if (marcaSeleccionada > 0) {
+                texto += `
+                          <strong>${document.getElementById("dropdownMarcas").textContent}</strong>
+                          en todas las categorías`;
+            }
+
+            contenedor.innerHTML = texto;
+        }
+
+
+
+    </script>
+}

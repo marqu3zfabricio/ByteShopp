@@ -1,0 +1,166 @@
+﻿@model CapaEntidad.Producto
+
+@{
+    ViewData["Title"] = Model.Nombre;
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+    <div class="row g-4 align-items-stretch">
+
+        <!-- Imagen -->
+        <div class="col-md-6">
+            <div class="card shadow h-100">
+                <div class="ratio ratio-1x1">
+                    <img src="@Model.RutaImagen"
+                         class="img-fluid object-fit-cover"
+                         alt="@Model.Nombre">
+                </div>
+            </div>
+        </div>
+
+        <!-- Información + botones -->
+        <div class="col-md-6 d-flex">
+            <div class="d-flex flex-column w-100">
+
+                <!-- Info -->
+                <div>
+                    <h2 class="fw-bold mb-2">@Model.Nombre</h2>
+
+                    <p class="text-muted mb-2">
+                        @Model.oCategoria.Descripcion · @Model.oMarca.Descripcion 
+                    </p>
+                    <hr class="text-secondary my-4">
+                    <p class="mb-4">
+                        @Model.Descripcion
+                    </p>
+
+                    
+
+                    <h4 class="fw-bold mb-3">
+                        $@Model.Precio
+                    </h4>
+
+                    <p class="mb-3">
+                        <span class="fw-semibold">Stock:</span>
+                        @if (Model.Stock > 0)
+                        {
+                            <span class="text-success">@Model.Stock disponibles</span>
+                        }
+                        else
+                        {
+                            <span class="text-danger">Sin stock</span>
+                        }
+                    </p>
+
+                    
+                </div>
+
+                <!-- Botones alineados al fondo (misma altura que imagen) -->
+                <div class="mt-auto d-flex gap-2">
+                    <button class="btn btn-primary w-100 focus-ring-0 shadow-none" onclick="agregarCarrito(@Model.IdProducto)"
+                            
+                    @(Model.Stock <= 0 ? "disabled" : "")>
+                        <i class="fas fa-cart-plus me-1"></i>
+                        Agregar al carrito
+                        
+                    </button>
+
+                    <a asp-controller="ByteShopTienda"
+                       asp-action="Index"
+                       class="btn btn-outline-secondary w-100 focus-ring-0 shadow-none">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        Volver
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+@section Scripts{
+    <script>
+                function agregarCarrito(idProducto) {
+            fetch('@Url.Action("OperacionCarrito", "ByteShopTienda")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    idProducto: idProducto,
+                    sumar: true,
+                    origen: 'details'
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+
+                // ✅ Producto agregado correctamente
+                if (result.resultado) {
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Producto agregado',
+                        text: 'El producto fue agregado al carrito correctamente',
+                        iconColor: '#0d6efd',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ir al carrito',
+                        cancelButtonText: 'Seguir comprando',
+                        confirmButtonColor: '#0d6efd',
+                        cancelButtonColor: '#6c757d'
+                    }).then((swalResult) => {
+                        if (swalResult.isConfirmed) {
+                            window.location.href = '@Url.Action("Carrito", "ByteShopTienda")';
+                        }
+                    });
+
+                    actualizarContadorCarrito();
+                    return;
+                }
+
+                // ⚠️ Producto ya existente en carrito
+                if (result.mensaje && result.mensaje.toLowerCase().includes("ya se encuentra")) {
+
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Producto ya agregado',
+                        text: result.mensaje,
+                        iconColor: '#0d6efd',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ver carrito',
+                        cancelButtonText: 'Seguir comprando',
+                        confirmButtonColor: '#0d6efd',
+                        cancelButtonColor: '#6c757d'
+                    }).then((swalResult) => {
+                        if (swalResult.isConfirmed) {
+                            window.location.href = '@Url.Action("Carrito", "ByteShopTienda")';
+                        }
+                    });
+
+                    return;
+                }
+
+                // ❌ Otro tipo de error
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No se pudo agregar el producto',
+                    text: result.mensaje,
+                    iconColor: '#0d6efd',
+                    confirmButtonColor: '#0d6efd'
+                });
+
+            })
+            .catch(() => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Ocurrió un error al agregar el producto al carrito',
+                    iconColor: '#0d6efd',
+                    confirmButtonColor: '#0d6efd'
+                });
+            });
+        }
+
+    </script>
+}

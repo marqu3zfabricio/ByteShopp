@@ -1,0 +1,195 @@
+﻿@{
+    ViewData["Title"] = "Gestión de Pedidos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid px-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0">
+                <i class="fas fa-truck me-2 text-primary"></i> Pedidos
+            </h2>
+            <small class="text-muted">Listado de ventas y pedidos pendientes</small>
+        </div>
+    </div>
+
+    <div class="card shadow rounded-3 mt-4">
+        <div class="card-header bg-primary text-white">
+            <span><i class="fas fa-truck me-2"></i> Listado de Pedidos</span>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="tablaPedidos" class="table table-hover align-middle" style="width:100%;">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Productos</th>
+                            <th>Fecha</th>
+                            <th>Monto Total</th>
+                            <th>Teléfono</th>
+                            <th>Dirección</th>
+                            <th>Distrito</th>
+                            <th>ID Transacción</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
+
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let tablaPedidos;
+
+        $(document).ready(function () {
+
+            tablaPedidos = $('#tablaPedidos').DataTable({
+                responsive: true,
+                ajax: {
+                    url: '@Url.Action("ListarPedidos", "Gestion")',
+                    type: 'GET',
+                    dataType: 'json'
+                },
+                        columns: [
+            {
+                className: 'dt-control',
+                orderable: false,
+                data: null,
+                defaultContent: '<i class="fas fa-plus-circle text-primary"></i>'
+            },
+            { data: 'FechaTexto' },
+            {
+                data: 'MontoTotal',
+                render: data => '$ ' + parseFloat(data).toFixed(2)
+            },
+            { data: 'Telefono' },
+            { data: 'Direccion' },
+            { data: 'oDistrito.Nombre' },
+            { data: 'IdTransaccion' },
+            {
+                data: 'Estado',
+                render: estado => {
+                    if (estado === 'Pendiente')
+                        return '<span class="badge bg-warning text-dark">Pendiente</span>';
+                    if (estado === 'Entregado')
+                        if (estado === 'Entregado')
+            return '<span class="badge bg-success text-white">Entregado</span>';
+
+        return `<span class="badge bg-secondary text-white">${estado}</span>`;
+                }
+            },
+            {
+                data: 'IdVenta',
+                orderable: false,
+                searchable: false,
+                render: function (data, type, row) {
+
+                    if (row.Estado === 'Entregado') {
+                        return '<span class="text-muted">—</span>';
+                    }
+
+                    return `
+                        <button class="btn btn-sm btn-success btn-entregar"
+                                data-id="${data}">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    `;
+                }
+            }
+        ]
+        ,
+                language: {
+                    url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
+                }
+            });
+
+            $('#tablaPedidos tbody').on('click', 'td.dt-control', function () {
+                const tr = $(this).closest('tr');
+                const row = tablaPedidos.row(tr);
+
+                if (row.child.isShown()) {
+                    row.child.hide();
+                    tr.removeClass('shown');
+                } else {
+                    row.child(formatDetalle(row.data())).show();
+                    tr.addClass('shown');
+                }
+            });
+        });
+
+        function formatDetalle(pedido) {
+
+            let html = `
+            <table class="table table-sm table-bordered mt-2 mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Producto</th>
+                        <th>Marca</th>
+                        <th>Categoría</th>
+                        <th>Cantidad</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            pedido.oDetalleVenta.forEach(d => {
+                html += `
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="${d.oProducto.RutaImagen}" width="40" class="rounded">
+                            <span>${d.oProducto.Nombre}</span>
+                        </div>
+                    </td>
+                    <td>${d.oProducto.oMarca.Descripcion}</td>
+                    <td>${d.oProducto.oCategoria.Descripcion}</td>
+                    <td>${d.Cantidad}</td>
+                    <td>$ ${parseFloat(d.Total).toFixed(2)}</td>
+                </tr>`;
+            });
+
+            html += '</tbody></table>';
+            return html;
+        }
+                $('#tablaPedidos tbody').on('click', '.btn-entregar', function () {
+
+            const idVenta = $(this).data('id');
+
+            Swal.fire({
+                title: '¿Confirmar entrega?',
+                text: 'Este pedido se marcará como ENTREGADO',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, entregar',
+                cancelButtonText: 'Cancelar'
+            }).then(result => {
+
+                if (!result.isConfirmed) return;
+
+                $.ajax({
+                    url: '@Url.Action("MarcarPedidoEntregado", "Gestion")',
+                    type: 'POST',
+                    data: { idVenta: idVenta },
+                    success: function (response) {
+
+                        if (response.resultado) {
+
+                            Swal.fire('Correcto', response.mensaje, 'success');
+                            tablaPedidos.ajax.reload(null, false);
+
+                        } else {
+                            Swal.fire('Error', response.mensaje, 'error');
+                        }
+                    }
+                });
+            });
+        });
+
+    </script>
+}

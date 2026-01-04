@@ -1,0 +1,224 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>@ViewData["Title"] - ByteShop Admin</title>
+
+    <!-- FontAwesome -->
+    <link href="~/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet" />
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css" />
+    <!-- SB Admin CSS -->
+    <link href="~/css/sb-admin-2.min.css" rel="stylesheet" asp-append-version="true" />
+    <!--date picker-->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+</head>
+
+<body id="page-top">
+    
+
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+            <!-- Brand -->
+            <li class="nav-item text-center">
+                <a class="sidebar-brand d-flex align-items-center justify-content-center" asp-controller="Home" asp-action="Index">
+                    
+                    <div class="sidebar-brand-text mx-3">ByteShop</div>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <hr class="sidebar-divider my-0" />
+            </li>
+
+            <!-- Dashboard -->
+            <li class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
+                <a class="nav-link" asp-controller="Home" asp-action="Index"> 
+                    <i class="fas fa-fw fa-tachometer-alt"></i> <span>Dashboard</span> 
+                    </a>
+            </li>
+
+            <li class="nav-item">
+                <hr class="sidebar-divider" />
+            </li>
+
+            <!-- Gestión -->
+            <li class="nav-item sidebar-heading"> <div class="sidebar-heading">Gestión</div> </li>
+            
+
+            <!-- Categorías -->
+            <li class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Gestion" && ViewContext.RouteData.Values["Action"]?.ToString() == "Categoria" ? "active" : "")"> 
+                <a class="nav-link" asp-controller="Gestion" asp-action="Categoria"> 
+                    <i class="fas fa-fw fa-list-alt"></i> <span>Categorías</span> </a> 
+                    </li>
+
+
+            <!-- Marcas -->
+            <li class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Gestion" && ViewContext.RouteData.Values["Action"]?.ToString() == "Marca" ? "active" : "")"> 
+                <a class="nav-link" asp-controller="Gestion" asp-action="Marca"> 
+                    <i class="fas fa-fw fa-tags"></i> <span>Marcas</span> </a> 
+                    </li>
+
+
+            <!-- Productos -->
+            <li class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Gestion" && ViewContext.RouteData.Values["Action"]?.ToString() == "Producto" ? "active" : "")"> 
+                <a class="nav-link" asp-controller="Gestion" asp-action="Producto">
+                    <i class="fas fa-boxes"></i> <span>Productos</span> </a> 
+                    </li>
+            
+                    
+                    <li class="nav-item">
+                <hr class="sidebar-divider" />
+            </li>
+
+
+            <!-- Pedidos -->
+            <li class="nav-item sidebar-heading">
+                <div class="sidebar-heading">Pedidos</div>
+            </li>
+            <li class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Gestion" && ViewContext.RouteData.Values["Action"]?.ToString() == "Pedidos" ? "active" : "")">
+                <a class="nav-link" asp-controller="Gestion" asp-action="Pedidos">
+                    <i class="fas fa-truck"></i> <span>Pedidos</span>
+                </a>
+            </li>
+
+
+            <li class="nav-item">
+                <hr class="sidebar-divider" />
+            </li>
+            <!-- Usuarios -->
+            <li class="nav-item sidebar-heading"> 
+                <div class="sidebar-heading">Usuarios</div>
+                </li>
+
+            <li class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Gestion" && ViewContext.RouteData.Values["Action"]?.ToString() == "Usuarios" ? "active" : "")"> 
+                <a class="nav-link" asp-controller="Gestion" asp-action="Usuarios"> 
+                    <i class="fas fa-fw fa-user"></i> <span>Usuarios</span> </a> 
+                    </li>
+            
+
+
+            <li class="nav-item">
+                <hr class="sidebar-divider d-none d-md-block" />
+            </li>
+
+            <li class="nav-item text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+            </li>
+
+        </ul>
+        <!-- End Sidebar -->
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-user-circle fa-lg"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                                 aria-labelledby="userDropdown">
+                                <a class="dropdown-item" href="https://portafolio-two-blue.vercel.app/">
+                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Perfil
+                                </a>
+
+                            </div>
+                        </li>
+
+                        
+
+                    </ul>
+
+                </nav>
+                <!-- End Topbar -->
+                <!-- Page Content -->
+                <div class="container-fluid  rounded-3 shadow-sm p-4">
+                    @RenderBody()
+                </div>
+
+
+            </div>
+            <!-- End Main Content -->
+            
+
+        </div>
+        <!-- End Content Wrapper -->
+
+    </div>
+    <!-- End Page Wrapper -->
+
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ready to Leave?</h5>
+                    <button class="close" type="button" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Select "Logout" below if you are ready to end your current session.
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <a class="btn btn-primary" asp-controller="Account" asp-action="Logout">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="~/vendor/jquery/jquery.min.js"></script>
+
+    <script src="~/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <script src="~/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <script src="~/js/sb-admin-2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- jQuery UI (para Datepicker) -->
+    
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+    <!-- LoadingOverlay (para animaciones al guardar) -->
+    <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>
+    
+    
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+
+</html>

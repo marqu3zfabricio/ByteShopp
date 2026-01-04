@@ -1,0 +1,260 @@
+﻿@model List<CapaEntidad.Carrito>
+
+@{
+    ViewData["Title"] = "Carrito";
+
+    decimal total = 0;
+    foreach (var item in Model)
+    {
+        total += item.oProducto.Precio * item.Cantidad;
+    }
+}
+
+<div class="container my-4">
+
+    <div class="card shadow rounded-3">
+        <div class="card-header bg-dark d-flex align-items-center">
+            <i class="fas fa-shopping-cart fa-lg me-2 text-white"></i>
+            <h5 class="mb-0 text-white">Mi Carrito</h5>
+        </div>
+
+        <div class="card-body">
+
+            @if (!Model.Any())
+            {
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-cart-arrow-down fa-2x mb-2"></i>
+                    <p class="mb-0">Actualmente no hay productos en carrito</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var item in Model)
+                {
+                    <div class="card mb-3 shadow-sm">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+
+                                <!-- Imagen -->
+                                <div class="col-3 col-md-2 text-center">
+                                    <img src="@item.oProducto.RutaImagen"
+                                         class="img-fluid rounded"
+                                         alt="@item.oProducto.Nombre" />
+                                </div>
+
+                                <!-- Información -->
+                                <div class="col-9 col-md-3">
+                                    <h6 class="mb-1">@item.oProducto.Nombre</h6>
+                                    <small class="text-muted">
+                                        @item.oProducto.oCategoria.Descripcion ·
+                                        @item.oProducto.oMarca.Descripcion
+                                    </small>
+                                </div>
+
+                                <!-- Precio -->
+                                <div class="col-md-2 text-md-center mt-2 mt-md-0">
+                                    <small class="text-muted d-block">Precio</small>
+                                    <span class="fw-bold ">
+                                        $@item.oProducto.Precio
+                                    </span>
+                                </div>
+
+
+                                <!-- Cantidad -->
+                                <div class="col-md-2 mt-2 mt-md-0 text-center">
+                                    <small class="text-muted d-block">Cantidad</small>
+
+                                    <div class="input-group input-group-sm border rounded ">
+                                        <button class="btn btn-light border-0 focus-ring-0 shadow-none"
+                                                type="button"
+                                                onclick="cambiarCantidad(@item.oProducto.IdProducto, -1)">
+                                            −
+                                        </button>
+
+                                        <input type="text"
+                                               class="form-control text-center border-0"
+                                               id="cantidad-@item.oProducto.IdProducto"
+                                               value="@item.Cantidad"
+                                               readonly />
+
+                                        <button class="btn btn-light border-0 focus-ring-0 shadow-none"
+                                                type="button"
+                                                onclick="cambiarCantidad(@item.oProducto.IdProducto, 1)">
+                                            +
+                                        </button>
+                                    </div>
+                                </div>
+
+
+
+
+                                <!-- Subtotal -->
+                                <div class="col-md-2 text-md-end mt-2 mt-md-0">
+                                    <small class="text-muted d-block">Subtotal</small>
+                                    <span class="fw-bold"
+                                          id="subtotal-@item.oProducto.IdProducto"
+                                          data-precio="@item.oProducto.Precio">
+                                        $@(item.oProducto.Precio* item.Cantidad)
+                                    </span>
+                                </div>
+
+                                <!-- Eliminar -->
+                                <div class="col-md-1 text-end mt-2 mt-md-0">
+                                    <button class="btn btn-danger btn-sm focus-ring-0 shadow-none"
+                                            onclick="eliminarCarrito(@item.oProducto.IdProducto)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                
+
+                <div class="d-flex justify-content-end">
+                    <div class="card shadow-sm" style="min-width: 260px;">
+                        <div class="card-body text-end">
+
+                            <small class="text-muted">Total a pagar</small>
+                            <h5 class="fw-bold mb-3" id="total-carrito">
+                                $@total
+                            </h5>
+
+                            <a href="@Url.Action("Pago", "Pagos")"
+                               class="btn btn-success btn-sm w-100 focus-ring-0 shadow-none">
+                                <i class="fas fa-credit-card me-2"></i> Realizar pedido
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+
+            }
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function eliminarCarrito(idProducto) {
+
+            Swal.fire({
+                title: '¿Eliminar producto?',
+                text: 'El producto será eliminado del carrito',
+                icon: 'warning',
+                iconColor: '#0d6efd',
+                showCancelButton: true,
+                confirmButtonColor: '#0d6efd',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+
+                    fetch('@Url.Action("EliminarCarrito", "ByteShopTienda")', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: new URLSearchParams({
+                            idProducto: idProducto
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+
+                        if (result.resultado) {
+                            Swal.fire({
+                                icon: 'success',
+                                iconColor: '#0d6efd',
+                                title: 'Eliminado',
+                                text: result.mensaje,
+                                timer: 1000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                location.reload();
+                            });
+
+                            actualizarContadorCarrito();
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: result.mensaje
+                            });
+                        }
+                    })
+                    .catch(() => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Ocurrió un error al eliminar el producto'
+                        });
+                    });
+                }
+            });
+        }
+            
+            function cambiarCantidad(idProducto, cambio) {
+
+            const inputCantidad = document.getElementById(`cantidad-${idProducto}`);
+            let cantidadActual = parseInt(inputCantidad.value);
+
+            if (cantidadActual + cambio <= 0) return;
+
+            fetch('@Url.Action("OperacionCarrito", "ByteShopTienda")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    idProducto: idProducto,
+                    sumar: cambio > 0
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+
+                if (!data.resultado) {
+                    if (data.mensaje)
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Stock insuficiente',
+                            text: data.mensaje,
+                            iconColor: '#0d6efd',
+                            confirmButtonColor: '#0d6efd'
+                        });
+                    return;
+                }
+
+                cantidadActual += cambio;
+                inputCantidad.value = cantidadActual;
+
+                const subtotal = document.getElementById(`subtotal-${idProducto}`);
+                const precio = parseFloat(subtotal.dataset.precio);
+
+                subtotal.textContent = `$${(precio * cantidadActual).toFixed(2)}`;
+
+                recalcularTotal();
+                actualizarContadorCarrito();
+            });
+        }
+
+        function recalcularTotal() {
+
+            let total = 0;
+
+            document.querySelectorAll('[id^="subtotal-"]').forEach(e => {
+                total += parseFloat(e.textContent.replace('$', ''));
+            });
+
+            document.getElementById('total-carrito').textContent =
+                `$${total.toFixed(2)}`;
+        }
+    </script>
+
+    
+}

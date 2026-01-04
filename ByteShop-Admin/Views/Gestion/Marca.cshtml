@@ -1,0 +1,243 @@
+﻿@{
+    ViewData["Title"] = "Gestión de Marcas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid px-4 py-4">
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0"><i class="fas fa-tags me-2 text-primary"></i> Marcas</h2>
+            <small class="text-muted">Gestion de marcas</small>
+        </div>
+    </div>
+    
+
+    <div class="card shadow rounded-3 mt-4">
+        <!-- Encabezado de la tarjeta -->
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-tags me-2"></i> Listado de Marcas</span>
+            <button class="btn btn-light btn-sm" id="btnNuevaMarca">
+                <i class="fas fa-plus me-1"></i> Crear nueva
+            </button>
+        </div>
+
+        <!-- Cuerpo con tabla -->
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="tablaMarcas" class="table table-hover align-middle" style="width:100%;">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Descripción</th>
+                            <th>Activo</th>
+                            <th style="width:120px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Marca -->
+<div class="modal fade" id="modalMarca" tabindex="-1" aria-labelledby="modalMarcaLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-3 shadow">
+            <!-- Encabezado -->
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalMarcaLabel">Nueva Marca</h5>
+                <button type="button" class="btn btn-sm text-white border-0 bg-transparent" data-dismiss="modal" aria-label="Cerrar">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+
+            <!-- Cuerpo -->
+            <div class="modal-body">
+                <input type="hidden" id="idMarca" value="0" />
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Descripción</label>
+                    <input type="text" class="form-control form-control-sm" id="descripcion" placeholder="Ingrese el nombre de la marca" autocomplete="off" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Activo</label>
+                    <select class="form-select form-select-sm" id="activo">
+                        <option value="1">Sí</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Pie -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" id="btnGuardar">
+                    <i class="fas fa-save me-1"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let tablaMarcas;
+        let filaSeleccionada;
+
+        $(document).ready(function () {
+            tablaMarcas = $('#tablaMarcas').DataTable({
+                responsive: true,
+                ordering: true,
+                ajax: {
+                    url: '@Url.Action("ListarMarcas", "Gestion")',
+                    type: 'GET',
+                    dataType: 'json'
+                },
+                columns: [
+                    { data: 'Descripcion' },
+                    {
+                        data: 'Activo',
+                        render: valor => valor
+                            ? '<span class="badge bg-success text-white">Sí</span>'
+                            : '<span class="badge bg-danger text-white">No</span>'
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        render: () => `
+                            <button class="btn btn-sm btn-primary btn-editar"><i class="fas fa-pen"></i></button>
+                            <button class="btn btn-sm btn-danger btn-eliminar ms-1"><i class="fas fa-trash"></i></button>`
+                    }
+                ],
+                language: {
+                    url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
+                }
+            });
+        });
+
+        // Abrir modal para nueva marca
+        $('#btnNuevaMarca').on('click', function () {
+            $('#idMarca').val(0);
+            $('#descripcion').val('');
+            $('#activo').val(1);
+            $('#modalMarcaLabel').text('Nueva Marca');
+            $('#modalMarca').modal('show');
+        });
+
+        // Guardar marca
+        $('#btnGuardar').on('click', function () {
+            const marca = {
+                IdMarca: parseInt($('#idMarca').val()),
+                Descripcion: $('#descripcion').val().trim(),
+                Activo: $('#activo').val() == 1
+            };
+
+            if (marca.Descripcion === '') {
+                Swal.fire({
+                text: 'Ingrese marca',
+                icon: 'warning',
+                iconColor: '#0d6efd',
+                confirmButtonColor: '#0d6efd'
+            });
+                return;
+            }
+
+            
+
+            $.ajax({
+                url: '@Url.Action("GuardarMarca", "Gestion")',
+                type: 'POST',
+                data: JSON.stringify(marca),
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    
+                    if (data.exito) {
+                        $('#modalMarca').modal('hide');
+                        tablaMarcas.ajax.reload();
+                        Swal.fire({
+                                icon: 'success',
+                                title: '',
+                                html: data.mensaje,
+                                iconColor: '#0d6efd',
+                                confirmButtonColor: '#0d6efd'
+                            });
+                    } else {
+                        Swal.fire({
+                                icon: 'error',
+                                title: '',
+                                html: data.mensaje,
+                                iconColor: '#0d6efd',
+                                confirmButtonColor: '#0d6efd'
+                            });
+                    }
+                },
+                error: function () {
+                    
+                    Swal.fire('Error', 'Ocurrió un problema al guardar la marca', 'error');
+                }
+            });
+        });
+
+        // Editar marca
+        $('#tablaMarcas tbody').on('click', '.btn-editar', function () {
+            filaSeleccionada = $(this).closest('tr');
+            const data = tablaMarcas.row(filaSeleccionada).data();
+
+            $('#idMarca').val(data.IdMarca);
+            $('#descripcion').val(data.Descripcion);
+            $('#activo').val(data.Activo ? 1 : 0);
+            $('#modalMarcaLabel').text('Editar Marca');
+            $('#modalMarca').modal('show');
+        });
+
+        // Eliminar marca
+        $('#tablaMarcas tbody').on('click', '.btn-eliminar', function () {
+            const fila = $(this).closest('tr');
+            const data = tablaMarcas.row(fila).data();
+
+            Swal.fire({
+                title: '¿Eliminar marca?',
+                text: `Se eliminará la categoría "${data.Descripcion}"`,
+                icon: 'warning',
+                iconColor: '#0d6efd',
+                showCancelButton: true,
+                confirmButtonText: 'Eliminar',
+                confirmButtonColor: '#0d6efd',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then(result => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("EliminarMarca", "Gestion")?id=' + data.IdMarca,
+                        type: 'DELETE',
+                        success: resp => {
+                            if (resp.exito) {
+                                tablaMarcas.ajax.reload();
+                                Swal.fire({
+                                        icon: 'success',
+                                        title: 'Marca eliminada',
+                                        html: resp.mensaje,
+                                        iconColor: '#0d6efd',
+                                        confirmButtonColor: '#0d6efd'
+                                    });
+                            } else {
+                                Swal.fire({
+                                        icon: 'error',
+                                        title: '',
+                                        html: resp.mensaje,
+                                        iconColor: '#0d6efd',
+                                        confirmButtonColor: '#0d6efd'
+                                    });
+                            }
+                        },
+                        error: () => Swal.fire('Error', 'Ocurrió un problema al eliminar la marca', 'error')
+                    });
+                }
+            });
+        });
+    </script>
+}

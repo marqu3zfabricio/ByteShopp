@@ -1,0 +1,2 @@
+# Forzar todos los archivos de texto a usar LF internamente en Git
+* text=auto

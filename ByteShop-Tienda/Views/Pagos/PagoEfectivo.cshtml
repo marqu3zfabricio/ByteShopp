@@ -1,0 +1,86 @@
+﻿@{
+    ViewData["Title"] = "Factura de Pago";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@model List<CapaEntidad.CarritoFactura>
+
+<div class="container my-4">
+    <div class="card shadow rounded-3">
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0">
+                <i class="fas fa-file-invoice me-2"></i> Factura de Pago
+            </h4>
+        </div>
+        <div class="card-body">
+            <p><strong>ID de Transacción:</strong> @ViewBag.IdTransaccion</p>
+            <p>@ViewBag.Mensaje</p>
+
+            <hr />
+
+            <!-- Tabla de productos -->
+            <div class="row g-2 fw-bold text-center mb-2">
+                <div class="col-2">Imagen</div>
+                <div class="col-4 text-start">Producto</div>
+                <div class="col-2">Precio</div>
+                <div class="col-2">Cantidad</div>
+                <div class="col-2">Total</div>
+            </div>
+
+            @foreach (var item in Model)
+            {
+                <div class="row g-2 align-items-center text-center mb-2">
+                    <div class="col-2">
+                        <img src="@item.oProducto.RutaImagen"
+                             class="img-fluid rounded"
+                             style="max-height:80px; object-fit:contain;" />
+                    </div>
+                    <div class="col-4 text-start d-flex align-items-center">
+                        @item.oProducto.Nombre
+                    </div>
+                    <div class="col-2 d-flex align-items-center justify-content-center">
+                        $@item.oProducto.Precio
+                    </div>
+                    <div class="col-2 d-flex align-items-center justify-content-center">
+                        @item.Cantidad
+                    </div>
+                    <div class="col-2 d-flex align-items-center justify-content-center">
+                        $@(item.oProducto.Precio* item.Cantidad)
+                    </div>
+                </div>
+            }
+
+            <hr />
+
+            <!-- Total global -->
+            <div class="d-flex justify-content-end fs-5 fw-bold mt-3">
+                <span>Total a pagar: </span>
+                <span class="ms-2">$@Model.Sum(x => x.oProducto.Precio * x.Cantidad)</span>
+            </div>
+
+            <div class="d-grid gap-2 mt-3">
+                <a href="@Url.Action("Index", "ByteShopTienda")" class="btn btn-primary">
+                    <i class="fas fa-home me-2"></i> Volver al inicio
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            var idTransaccion = '@ViewBag.IdTransaccion';
+
+            if (idTransaccion) {
+                Swal.fire({
+                    title: 'Pago realizado con éxito',
+                    html: '<strong>ID de Transacción:</strong><br>' + idTransaccion,
+                    icon: 'success',
+                    confirmButtonText: 'Aceptar'
+                });
+            }
+
+        });
+    </script>
+}
+

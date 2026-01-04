@@ -1,0 +1,216 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] </title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    
+    
+
+    <!-- FontAwesome -->
+    <link href="~/lib/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css" />
+
+
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-dark bg-dark border-bottom box-shadow mb-3">
+            <div class="container-fluid px-4">
+                <div class="d-flex align-items-center justify-content-between w-100 flex-wrap gap-2">
+
+                    <!-- Izquierda: Logo -->
+                    <div class="d-flex align-items-center">
+                        <a class="navbar-brand fw-semibold text-uppercase"
+                           asp-controller="ByteShopTienda"
+                           asp-action="Index">
+                            ByteShop
+                        </a>
+                    </div>
+
+                    <div class="col-12 col-sm-6 col-md-5 col-lg-4 text-center
+            order-3 order-sm-2
+            position-static position-sm-absolute
+            start-sm-50 translate-middle-x-sm">
+
+                        <div class="dropdown w-100">
+                            <input id="inputBusqueda"
+                                   class="form-control rounded-pill dropdown-toggle"
+                                   type="search"
+                                   placeholder="Buscar productos..."
+                                   autocomplete="off"
+                                   data-bs-toggle="dropdown"
+                                   aria-expanded="false">
+
+                            <ul class="dropdown-menu w-100 shadow" id="listaBusqueda">
+                                <li class="dropdown-item text-muted">Escribe para buscar productos</li>
+                            </ul>
+                        </div>
+                    </div>
+
+
+                    <!-- Derecha: Carrito -->
+                    <div class="d-flex align-items-center position-relative order-sm-3">
+                        <a class="text-white text-decoration-none"
+                           asp-controller="ByteShopTienda"
+                           asp-action="Carrito"
+                           aria-label="Ver carrito">
+
+                            <i class="fas fa-shopping-cart fa-lg"></i>
+
+                            <span id="contadorCarrito"
+                                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                  style="display:none;">
+                                0
+                            </span>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="sticky-footer bg-white">
+        
+    </footer>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            actualizarContadorCarrito();
+        });
+        const inputBusqueda = document.getElementById("inputBusqueda");
+        const listaBusqueda = document.getElementById("listaBusqueda");
+        let productosBusqueda = [];
+
+        inputBusqueda.addEventListener("focus", () => {
+            cargarProductosBusqueda();
+        });
+                inputBusqueda.addEventListener("input", () => {
+            filtrarProductosBusqueda(inputBusqueda.value.trim().toLowerCase());
+        });
+
+                                function cargarProductosBusqueda() {
+
+            if (productosBusqueda.length > 0) {
+                renderizarListaBusqueda(productosBusqueda);
+                return;
+            }
+
+            fetch('@Url.Action("ListarProductos", "ByteShopTienda")')
+                .then(response => response.json())
+                .then(result => {
+                    productosBusqueda = result.data;
+                    renderizarListaBusqueda(productosBusqueda);
+                })
+                .catch(() => {
+                    listaBusqueda.innerHTML =
+                        `<li class="dropdown-item text-danger">Error al cargar productos</li>`;
+                });
+        }
+
+                       function filtrarProductosBusqueda(texto) {
+
+            if (texto.length === 0) {
+                renderizarListaBusqueda(productosBusqueda);
+                return;
+            }
+
+            const resultados = productosBusqueda.filter(p => {
+
+                const nombre = p.Nombre.toLowerCase();
+                const marca = p.oMarca?.Descripcion?.toLowerCase() || "";
+                const categoria = p.oCategoria?.Descripcion?.toLowerCase() || "";
+
+                return nombre.includes(texto) ||
+                       marca.includes(texto) ||
+                       categoria.includes(texto);
+            });
+
+            renderizarListaBusqueda(resultados);
+        }
+
+
+        function actualizarContadorCarrito() {
+            fetch('@Url.Action("ContadorCarrito", "ByteShopTienda")')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById("contadorCarrito");
+
+                    if (!badge) return;
+
+                    if (data.total > 0) {
+                        badge.innerText = data.total;
+                        badge.style.display = "inline-block";
+                    } else {
+                        badge.style.display = "none";
+                    }
+                })
+                .catch(() => {
+                    console.warn("No se pudo actualizar el contador del carrito");
+                });
+        }
+                        function renderizarListaBusqueda(lista) {
+
+            listaBusqueda.innerHTML = "";
+
+            if (lista.length === 0) {
+                listaBusqueda.innerHTML =
+                    `<li class="dropdown-item text-muted">Sin coincidencias</li>`;
+                return;
+            }
+
+            lista.forEach((p, index) => {
+
+                const li = document.createElement("li");
+
+                li.innerHTML = `
+                    <a class="dropdown-item d-flex align-items-center gap-2 py-2"
+                       href="@Url.Action("ProductDetails", "ByteShopTienda")?id=${p.IdProducto}">
+
+                        <img src="${p.RutaImagen}"
+                             class="rounded"
+                             width="40"
+                             height="40"
+                             alt="${p.Nombre}">
+
+                        <div class="flex-grow-1 text-start">
+                            <div class="small fw-semibold text-truncate">${p.Nombre}</div>
+                            <div class="small text-muted">
+                                ${p.oCategoria.Descripcion} · ${p.oMarca.Descripcion}
+                            </div>
+                        </div>
+
+                        <div class="fw-semibold text-end small text-dark">
+                            $${p.Precio}
+                        </div>
+                    </a>
+                `;
+
+                listaBusqueda.appendChild(li);
+
+                if (index < lista.length - 1) {
+                    const divider = document.createElement("li");
+                    divider.innerHTML = `<hr class="dropdown-divider w-75 mx-auto my-1">`;
+                    listaBusqueda.appendChild(divider);
+                }
+            });
+        }
+
+
+    </script>
+
+</body>
+</html>
