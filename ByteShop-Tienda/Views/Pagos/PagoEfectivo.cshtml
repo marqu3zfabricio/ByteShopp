@@ -50,13 +50,19 @@
             }
 
             <hr />
-
+            
             <!-- Total global -->
             <div class="d-flex justify-content-end fs-5 fw-bold mt-3">
-                <span>Total a pagar: </span>
+                <span>Total pagado: </span>
                 <span class="ms-2">$@Model.Sum(x => x.oProducto.Precio * x.Cantidad)</span>
             </div>
-
+            <div class="d-grid gap-2 mt-3">
+                <a href="@Url.Action("DescargarFacturaPDF", "Pagos", new { idTransaccion = ViewBag.IdTransaccion })"
+                   target="_blank"
+                   class="btn btn-danger">
+                    <i class="fas fa-file-pdf me-2"></i> Ver Factura (PDF)
+                </a>
+            </div>
             <div class="d-grid gap-2 mt-3">
                 <a href="@Url.Action("Index", "ByteShopTienda")" class="btn btn-primary">
                     <i class="fas fa-home me-2"></i> Volver al inicio

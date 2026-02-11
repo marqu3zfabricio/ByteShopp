@@ -42,6 +42,11 @@
                             <label class="form-label">Teléfono</label>
                             <input type="text" class="form-control" value="" />
                         </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre de contacto</label>
+                            <input type="text" id="contacto" class="form-control" placeholder="Ej: Juan Pérez" />
+                        </div>
+
                         <div class="col-12">
                             <label class="form-label">Dirección completa</label>
                             <textarea class="form-control" rows="3"></textarea>
@@ -117,122 +122,182 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
-            // Cargar departamentos al iniciar
+
+            /* ==============================
+               CARGA DE UBICACIONES
+            ============================== */
+
             $.getJSON('@Url.Action("ListarDepartamentos")', function (response) {
                 $.each(response.data, function (i, departamento) {
-                    $('#departamento').append(`<option value="${departamento.IdDepartamento}">${departamento.Nombre}</option>`);
+                    $('#departamento').append(
+                        `<option value="${departamento.IdDepartamento}">
+                            ${departamento.Nombre}
+                         </option>`
+                    );
                 });
             });
 
-            // Cuando se selecciona un departamento
             $('#departamento').on('change', function () {
                 var deptoId = $(this).val();
-                $('#municipio').prop('disabled', !deptoId).html('<option value="">-- Seleccionar Municipio --</option>');
-                $('#distrito').prop('disabled', true).html('<option value="">-- Seleccionar Distrito --</option>');
+
+                $('#municipio')
+                    .prop('disabled', !deptoId)
+                    .html('<option value="">-- Seleccionar Municipio --</option>');
+
+                $('#distrito')
+                    .prop('disabled', true)
+                    .html('<option value="">-- Seleccionar Distrito --</option>');
 
                 if (deptoId) {
                     $.getJSON('@Url.Action("ListarMunicipios")', function (response) {
-                        var municipios = response.data.filter(m => m.oDepartamento?.IdDepartamento == deptoId);
+                        var municipios = response.data.filter(m =>
+                            m.oDepartamento?.IdDepartamento == deptoId
+                        );
+
                         $.each(municipios, function (i, municipio) {
-                            $('#municipio').append(`<option value="${municipio.IdMunicipio}">${municipio.Nombre}</option>`);
+                            $('#municipio').append(
+                                `<option value="${municipio.IdMunicipio}">
+                                    ${municipio.Nombre}
+                                 </option>`
+                            );
                         });
                     });
                 }
             });
 
-            // Cuando se selecciona un municipio
             $('#municipio').on('change', function () {
                 var municipioId = $(this).val();
-                $('#distrito').prop('disabled', !municipioId).html('<option value="">-- Seleccionar Distrito --</option>');
+
+                $('#distrito')
+                    .prop('disabled', !municipioId)
+                    .html('<option value="">-- Seleccionar Distrito --</option>');
 
                 if (municipioId) {
                     $.getJSON('@Url.Action("ListarDistritos")', function (response) {
-                        var distritos = response.data.filter(d => d.oMunicipio?.IdMunicipio == municipioId);
+                        var distritos = response.data.filter(d =>
+                            d.oMunicipio?.IdMunicipio == municipioId
+                        );
+
                         $.each(distritos, function (i, distrito) {
-                            $('#distrito').append(`<option value="${distrito.IdDistrito}">${distrito.Nombre}</option>`);
+                            $('#distrito').append(
+                                `<option value="${distrito.IdDistrito}">
+                                    ${distrito.Nombre}
+                                 </option>`
+                            );
                         });
                     });
                 }
             });
 
-            // Confirmar pedido
+
+            /* ==============================
+               CONFIRMAR PEDIDO
+            ============================== */
+
             $('.btn-success').click(function () {
-                var totalProducto = @Model.Sum(x => x.Cantidad); // Total de productos
-                var montoTotal = @Model.Sum(x => x.Cantidad * x.oProducto.Precio); // Total monto
+
+                var totalProducto = @Model.Sum(x => x.Cantidad);
+                var montoTotal = @Model.Sum(x => x.Cantidad * x.oProducto.Precio);
+
                 var idDepartamento = $('#departamento').val();
                 var idMunicipio = $('#municipio').val();
                 var idDistrito = $('#distrito').val();
-                var telefono = $('input[type="text"]').val();
+                var telefono = $('input[type="text"]').first().val();
                 var direccion = $('textarea').val();
-                var idTransaccion = 'TX-' + new Date().getTime(); // Genera un ID de transacción único
+                var contacto = $('#contacto').val();
+
+                var idTransaccion = 'TX-' + new Date().getTime();
+
+                /* ===== VALIDACIONES ===== */
 
                 if (!idDepartamento) {
                     Swal.fire('Error', 'Debe seleccionar un departamento', 'warning');
                     return;
                 }
+
                 if (!idMunicipio) {
                     Swal.fire('Error', 'Debe seleccionar un municipio', 'warning');
                     return;
                 }
+
                 if (!idDistrito) {
                     Swal.fire('Error', 'Debe seleccionar un distrito', 'warning');
                     return;
                 }
-                
-                
-                if (!telefono ) {
-                    Swal.fire('Error', 'Debe agregar un telefono de contacto', 'warning');
-                    return;
-                }
-                        var regexTelefono = /^\d+$/;
-        if (!regexTelefono.test(telefono)) {
-            Swal.fire('Error', 'El teléfono solo puede contener números', 'warning');
-            return;
-        }
-                if (!direccion) {
-                    Swal.fire('Error', 'Debe agregar una direccion', 'warning');
+
+                if (!telefono) {
+                    Swal.fire('Error', 'Debe agregar un teléfono de contacto', 'warning');
                     return;
                 }
 
-                $.ajax({
-                    url: '@Url.Action("RegistrarVenta")',
-                    type: 'POST',
-                    data: {
-                        totalProducto: totalProducto,
-                        montoTotal: montoTotal,
-                        idDistrito: idDistrito,
-                        telefono: telefono,
-                        direccion: direccion,
-                        idTransaccion: idTransaccion
-                    },
-                    success: function (response) {
+                var regexTelefono = /^\d+$/;
+                if (!regexTelefono.test(telefono)) {
+                    Swal.fire('Error', 'El teléfono solo puede contener números', 'warning');
+                    return;
+                }
+
+                if (!contacto) {
+                    Swal.fire('Error', 'Debe ingresar el nombre de contacto', 'warning');
+                    return;
+                }
+
+                if (!direccion) {
+                    Swal.fire('Error', 'Debe agregar una dirección', 'warning');
+                    return;
+                }
+
+                /* ===== CONFIRMACIÓN ANTES DE REGISTRAR ===== */
+
+                Swal.fire({
+                    title: '¿Confirmar pago en efectivo?',
+                    text: 'Se registrará la venta y serás redirigido a la página de pago.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, continuar',
+                    cancelButtonText: 'Cancelar',
+                    reverseButtons: true
+                }).then((result) => {
+
+                    if (result.isConfirmed) {
+
+                        $.ajax({
+                            url: '@Url.Action("RegistrarVenta")',
+                            type: 'POST',
+                            data: {
+                                totalProducto: totalProducto,
+                                montoTotal: montoTotal,
+                                idDistrito: idDistrito,
+                                telefono: telefono,
+                                direccion: direccion,
+                                idTransaccion: idTransaccion,
+                                contacto: contacto
+                            },
+                            success: function (response) {
+
                                 if (response.resultado) {
 
-            Swal.fire({
-                title: '¿Confirmar pago en efectivo?',
-                text: 'Serás redirigido a la página de pago. Esta acción no se puede deshacer.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Sí, continuar',
-                cancelButtonText: 'Cancelar',
-                reverseButtons: true
-            }).then((result) => {
+                                    window.location.href =
+                                        '@Url.Action("PagoEfectivo", "Pagos")'
+                                        + '?pagoRealizado=true&idTransaccion='
+                                        + idTransaccion;
 
-                if (result.isConfirmed) {
-                    window.location.href = '@Url.Action("PagoEfectivo", "Pagos")' + '?pagoRealizado=true&idTransaccion=' + idTransaccion;
-                }
+                                } else {
+                                    Swal.fire('Error', response.mensaje, 'error');
+                                }
 
-            });
-        }
-         else {
-                            Swal.fire('Error', response.mensaje, 'error');
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        Swal.fire('Error', 'Ocurrió un error al procesar la venta', 'error');
+                            },
+                            error: function () {
+                                Swal.fire('Error', 'Ocurrió un error al procesar la venta', 'error');
+                            }
+                        });
+
                     }
+
                 });
+
             });
+
         });
     </script>
 }
+

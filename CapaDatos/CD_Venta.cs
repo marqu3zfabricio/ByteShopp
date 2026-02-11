@@ -139,12 +139,13 @@ namespace CapaDatos
             return lista;
         }
         public async Task<(bool Resultado, string Mensaje)> RegistrarVenta(
-                int totalProducto,
-                decimal montoTotal,
-                int idDistrito,
-                string telefono,
-                string direccion,
-                string idTransaccion)
+        int totalProducto,
+        decimal montoTotal,
+        int idDistrito,
+        string telefono,
+        string direccion,
+        string idTransaccion,
+        string contacto)
         {
             bool resultado = false;
             string mensaje = string.Empty;
@@ -162,6 +163,7 @@ namespace CapaDatos
                 cmd.Parameters.AddWithValue("@Telefono", telefono);
                 cmd.Parameters.AddWithValue("@Direccion", direccion);
                 cmd.Parameters.AddWithValue("@IdTransaccion", idTransaccion);
+                cmd.Parameters.AddWithValue("@Contacto", contacto);
 
                 // Parámetros de salida
                 cmd.Parameters.Add("@Resultado", SqlDbType.Bit).Direction = ParameterDirection.Output;
@@ -181,6 +183,7 @@ namespace CapaDatos
 
             return (resultado, mensaje);
         }
+
         public async Task<List<CarritoFactura>> ListarFacturaPorTransaccion(string idTransaccion)
         {
             List<CarritoFactura> lista = [];

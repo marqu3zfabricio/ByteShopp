@@ -24,7 +24,8 @@ namespace CapaNegocio
         int idDistrito,
         string telefono,
         string direccion,
-        string idTransaccion)
+        string idTransaccion,
+        string contacto)
         {
             return await _objCapaDatos.RegistrarVenta(
                 totalProducto,
@@ -32,7 +33,8 @@ namespace CapaNegocio
                 idDistrito,
                 telefono,
                 direccion,
-                idTransaccion
+                idTransaccion,
+                contacto
             );
         }
         public async Task<List<CarritoFactura>> ListarFacturaPorTransaccion(string idTransaccion)

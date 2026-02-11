@@ -1,6 +1,10 @@
 ﻿using CapaEntidad;
 using CapaNegocio;
 using Microsoft.AspNetCore.Mvc;
+using QuestPDF.Helpers;
+using QuestPDF.Fluent;
+using QuestPDF.Infrastructure;
+
 using System.Globalization;
 
 namespace ByteShop_Tienda.Controllers
@@ -45,20 +49,88 @@ namespace ByteShop_Tienda.Controllers
         }
         public async Task<IActionResult> PagoEfectivo(bool pagoRealizado = false, string idTransaccion = "")
         {
-            if (!pagoRealizado || string.IsNullOrEmpty(idTransaccion))
+            // 1. Validación básica de parámetros
+            if (!pagoRealizado || string.IsNullOrWhiteSpace(idTransaccion))
+            {
                 return RedirectToAction("Pago", "Pagos");
+            }
 
+            // 2. Consultar la factura en la capa de negocio
             var lista = await _negocioVenta.ListarFacturaPorTransaccion(idTransaccion);
 
+            // 3. Validar si la transacción realmente existe
+            if (lista == null || !lista.Any())
+            {
+                // Si no existe, redirigir a un error o al inicio de pagos
+                TempData["Error"] = "La transacción no es válida o no existe.";
+                return RedirectToAction("Pago", "Pagos");
+            }
+
+            // 4. Si todo está bien, preparar la vista
             ViewBag.IdTransaccion = idTransaccion;
             ViewBag.Mensaje = "Pago registrado correctamente";
 
             return View(lista);
         }
 
+        //descargar factura pdf
+        public async Task<IActionResult> DescargarFacturaPDF(string idTransaccion)
+        {
+            // 1. Traer la data
+            var lista = await _negocioVenta.ListarFacturaPorTransaccion(idTransaccion);
+            if (lista == null || !lista.Any()) return NotFound();
 
+            // 2. Configurar la licencia (QuestPDF requiere esta línea para uso comunitario)
+            QuestPDF.Settings.License = LicenseType.Community;
 
+            // 3. Crear el documento
+            var documento = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Margin(1, Unit.Centimetre);
+                    page.Header().Text($"Factura: {idTransaccion}").FontSize(20).SemiBold().FontColor(Colors.Blue.Medium);
 
+                    page.Content().Table(table =>
+                    {
+                        table.ColumnsDefinition(columns =>
+                        {
+                            columns.RelativeColumn(3); // Producto
+                            columns.RelativeColumn(1); // Precio
+                            columns.RelativeColumn(1); // Cantidad
+                            columns.RelativeColumn(1); // Total
+                        });
+
+                        table.Header(header =>
+                        {
+                            header.Cell().Text("Producto");
+                            header.Cell().Text("Precio");
+                            header.Cell().Text("Cant.");
+                            header.Cell().Text("Total");
+                        });
+
+                        foreach (var item in lista)
+                        {
+                            table.Cell().Text(item.oProducto.Nombre);
+                            table.Cell().Text($"${item.oProducto.Precio}");
+                            table.Cell().Text($"{item.Cantidad}");
+                            table.Cell().Text($"${item.oProducto.Precio * item.Cantidad}");
+                        }
+                    });
+
+                    page.Footer().AlignCenter().Text(x => {
+                        x.Span("Página ");
+                        x.CurrentPageNumber();
+                    });
+                });
+            });
+
+            // 4. Convertir a Bytes y enviar al navegador
+            byte[] pdfBytes = documento.GeneratePdf();
+
+            // Al usar "inline", el navegador intentará abrirlo en una pestaña nueva en lugar de descargarlo
+            return File(pdfBytes, "application/pdf");
+        }
 
         //listar distritos
         public async Task<JsonResult> ListarDistritos()
@@ -106,7 +178,8 @@ namespace ByteShop_Tienda.Controllers
                 int idDistrito,
                 string telefono,
                 string direccion,
-                string idTransaccion)
+                string idTransaccion,
+                string contacto)
         {
             try
             {
@@ -117,7 +190,8 @@ namespace ByteShop_Tienda.Controllers
                     idDistrito,
                     telefono,
                     direccion,
-                    idTransaccion
+                    idTransaccion,
+                    contacto
                 );
 
                 return Json(new { resultado, mensaje });

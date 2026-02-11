@@ -21,3 +21,40 @@ body {
   margin-bottom: 60px;
 }
 
+/* ===== Sidebar base ===== */
+.sidebar {
+    background-color: #ffffff !important;
+}
+
+    /* Texto normal */
+    .sidebar .nav-link,
+    .sidebar .nav-link span,
+    .sidebar .nav-link i {
+        color: #000000 !important;
+    }
+
+        /* Hover */
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link:hover span,
+        .sidebar .nav-link:hover i {
+            color: #000000 !important;
+        }
+
+    /* Títulos de sección (Gestión, Pedidos, Usuarios) */
+    .sidebar .sidebar-heading {
+        color: #000000 !important;
+        font-weight: 600;
+    }
+
+    /* Item activo */
+    .sidebar .nav-item.active .nav-link,
+    .sidebar .nav-item.active .nav-link span,
+    .sidebar .nav-item.active .nav-link i {
+        color: #000000 !important;
+        font-weight: 700;
+    }
+
+    /* Elimina el fondo azul del activo */
+    .sidebar .nav-item.active .nav-link {
+        background-color: transparent !important;
+    }
